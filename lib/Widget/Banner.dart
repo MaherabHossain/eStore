@@ -40,7 +40,7 @@ Widget BannerImage() {
         ),
       ],
       options: CarouselOptions(
-        height: 150.0,
+        height: 120.0,
         enlargeCenterPage: true,
         autoPlay: true,
         aspectRatio: 16 / 9,

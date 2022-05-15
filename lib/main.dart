@@ -1,3 +1,4 @@
+import 'package:ecommerce/screens/HomeScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
@@ -44,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   var categories = [];
 
   var products = [];
-
+  List isCard;
   Future getCategories() async {
     final res = await http
         .get(Uri.parse('https://fakestoreapi.com/products/categories'));
@@ -58,6 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final res = await http.get(Uri.parse('https://fakestoreapi.com/products'));
     setState(() {
       products = jsonDecode(res.body);
+      isCard = List.filled(products.length, false);
     });
     print(products[0]['title']);
   }
@@ -71,106 +73,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Dokan"),
-        leading: Icon(Icons.menu),
-        actions: [
-          Container(
-            child: IconButton(
-                padding: EdgeInsets.only(right: 20),
-                icon: Icon(Icons.shopping_cart_outlined),
-                onPressed: () {}),
-          )
-        ],
-      ),
-      body: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            BannerImage(),
-            Padding(
-              padding: const EdgeInsets.only(left: 20, top: 20, bottom: 10),
-              child: Text(
-                "Categories",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Container(
-              height: 35,
-              child: Expanded(
-                  child: categories.length > 0
-                      ? ListView.builder(
-                          shrinkWrap: true,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(
-                                    10), // <= No more error here :)
-                                color: Colors.grey,
-                              ),
-                              height: 100,
-                              padding: EdgeInsets.all(10),
-                              margin: EdgeInsets.only(left: 20),
-                              child: Text(
-                                categories[index],
-                                style: TextStyle(fontSize: 15),
-                              ),
-                            );
-                          },
-                          itemCount: categories.length,
-                        )
-                      : Center(child: CircularProgressIndicator())),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 20, top: 20, bottom: 10),
-              child: Text(
-                "Products",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: 20, right: 20),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 50),
-                  itemBuilder: (context, index) {
-                    return GridTile(
-                      child: Image.network(
-                        products[index]['image'],
-                        fit: BoxFit.contain,
-                      ),
-                      footer: GridTileBar(
-                        backgroundColor: Colors.black54,
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              products[index]['title'],
-                            ),
-                            Text(
-                              "${products[index]['price'].toString()} ${new String.fromCharCodes(new Runes('\u0024'))}",
-                              style: TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        trailing: IconButton(
-                            icon: Icon(Icons.add_shopping_cart),
-                            onPressed: () {}),
-                      ),
-                    );
-                  },
-                  itemCount: products.length,
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
+    return Scaffold(body: HomeScreen());
   }
 }
