@@ -1,6 +1,7 @@
 import 'package:ecommerce/Provider/MainProvider.dart';
 import 'package:ecommerce/Widget/Banner.dart';
 import 'package:ecommerce/screens/CartScreen.dart';
+import 'package:ecommerce/screens/CategoryScreen.dart';
 import 'package:ecommerce/screens/Productdetails.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -40,7 +41,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var categories = [];
-  var cart = [];
+
   var products = [];
   List isCard;
   Future getCategories() async {
@@ -49,7 +50,6 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       categories = jsonDecode(res.body);
     });
-    print(categories[0]);
   }
 
   Future getProduct() async {
@@ -58,7 +58,6 @@ class _MyHomePageState extends State<MyHomePage> {
       products = jsonDecode(res.body);
       isCard = List.filled(products.length, false);
     });
-    print(products[0]['title']);
   }
 
   @override
@@ -70,6 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final providerData = Provider.of<MainProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text("Dokan"),
@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => CartScreen(
-                        cart: cart,
+                        cart: providerData.cart,
                       ),
                     ),
                   );
@@ -101,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: CircleAvatar(
                     radius: 27,
                     backgroundColor: Colors.blueAccent,
-                    child: Text(cart.length.toString()),
+                    child: Text(providerData.cart.length.toString()),
                   ),
                 ),
               )
@@ -130,7 +130,24 @@ class _MyHomePageState extends State<MyHomePage> {
                           itemBuilder: (context, index) {
                             return GestureDetector(
                               onTap: () {
+                                var categoryProduct = [];
+                                for (var i = 0; i < products.length; i++) {
+                                  if (categories[index] ==
+                                      products[i]['category']) {
+                                    categoryProduct.add(products[i]);
+                                  }
+                                }
+
+                                print(categoryProduct.length);
                                 print(categories[index]);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CategoryScreen(
+                                        products: categoryProduct,
+                                        categoryName: categories[index]),
+                                  ),
+                                );
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -221,7 +238,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               size: 35,
                             ),
                             onPressed: () {
-                              !isCard[index] ? cart.add(products[index]) : null;
+                              !isCard[index]
+                                  ? providerData.addtTocart(products[index])
+                                  : null;
                               setState(() {
                                 isCard[index] = !isCard[index];
                               });

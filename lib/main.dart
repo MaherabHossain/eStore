@@ -42,35 +42,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var categories = [];
-
-  var products = [];
-  List isCard;
-  Future getCategories() async {
-    final res = await http
-        .get(Uri.parse('https://fakestoreapi.com/products/categories'));
-    setState(() {
-      categories = jsonDecode(res.body);
-    });
-    print(categories[0]);
-  }
-
-  Future getProduct() async {
-    final res = await http.get(Uri.parse('https://fakestoreapi.com/products'));
-    setState(() {
-      products = jsonDecode(res.body);
-      isCard = List.filled(products.length, false);
-    });
-    print(products[0]['title']);
-  }
-
-  @override
-  void initState() {
-    getCategories();
-    getProduct();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: HomeScreen());
