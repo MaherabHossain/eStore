@@ -1,19 +1,19 @@
 import 'package:ecommerce/screens/HomeScreen.dart';
+import 'package:ecommerce/screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+
 import 'package:provider/provider.dart';
 import 'Provider/MainProvider.dart';
-import 'Widget/Banner.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 void main() {
-  runApp(ChangeNotifierProvider(
-      create: (context) => MainProvider(), child: MyApp()));
+  runApp(
+    ChangeNotifierProvider(create: (context) => MainProvider(), child: MyApp()),
+  );
 }
 
 class MyApp extends StatefulWidget {
   // This widget is the root of your application.
+
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -42,8 +42,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool isLogin = true;
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: HomeScreen());
+    return Scaffold(
+      body: isLogin ? HomeScreen() : LoginScreen(),
+    );
   }
 }
