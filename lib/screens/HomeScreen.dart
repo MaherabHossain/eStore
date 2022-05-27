@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ecommerce/Provider/globals.dart' as globals;
 
 class HomeScreen extends StatefulWidget {
   // This widget is the root of your application.
@@ -20,6 +21,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
+    print(globals.baseUrl);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
@@ -45,17 +47,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List products = [];
   List isCard;
-
+  bool productLoader = true;
   Future getCategories() async {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token');
     print('here is token');
     print(token);
-    String bearerToken = "Bearer 1|bQXdkeAX1Ib8q1FwBXU4tfiAL5LKD6asRHBWPLNO";
-    final res = await http
-        .get(Uri.parse('http://192.168.1.21:8000/api/categories'), headers: {
+    String bearerToken = "Bearer $token";
+    final res =
+        await http.get(Uri.parse('${globals.baseUrl}api/categories'), headers: {
       'Authorization': bearerToken,
-      'Accept': 'application/json',
     });
     setState(() {
       categories = jsonDecode(res.body);
@@ -67,15 +68,18 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token');
     String bearerToken = "Bearer $token";
-    final res = await http
-        .get(Uri.parse('http://192.168.1.21:8000/api/products'), headers: {
+    final res =
+        await http.get(Uri.parse('${globals.baseUrl}api/products'), headers: {
       'Authorization': bearerToken,
-      'Accept': 'application/json',
     });
 
     setState(() {
       products = jsonDecode(res.body);
       isCard = List.filled(products.length, false);
+    });
+    setState(() {
+      // print(products);
+      productLoader = false;
     });
   }
 
@@ -149,6 +153,19 @@ class _MyHomePageState extends State<MyHomePage> {
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, index) {
                             return GestureDetector(
+                              onTap: () {
+                                var id = categories[index]['id'];
+                                String name = categories[index]['name'];
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CategoryScreen(
+                                      id: id,
+                                      categoryName: name,
+                                    ),
+                                  ),
+                                );
+                              },
                               // onTap: () {
                               //   var categoryProduct = [];
                               //   for (var i = 0; i < products.length; i++) {
@@ -198,86 +215,93 @@ class _MyHomePageState extends State<MyHomePage> {
             Expanded(
               child: Padding(
                 padding: EdgeInsets.only(left: 20, right: 20),
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 50),
-                  itemBuilder: (context, index) {
-                    return GridTile(
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailsScreen(
-                                product: products[index],
+                child: productLoader
+                    ? Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 20,
+                            mainAxisSpacing: 50),
+                        itemBuilder: (context, index) {
+                          return GridTile(
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetailsScreen(
+                                      product: products[index],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: CachedNetworkImage(
+                                imageUrl: "${globals.baseUrl}image/" +
+                                    products[index]['image_url1'],
+                                placeholder: (context, url) =>
+                                    CircularProgressIndicator(),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.error),
                               ),
+                              //     Image.network(
+                              //   "http://192.168.1.21:8000/image/" +
+                              //       products[index]['image_url1'],
+                              //   fit: BoxFit.contain,
+                              // ),
+                            ),
+                            footer: GridTileBar(
+                              backgroundColor: Colors.black54,
+                              title: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ProductDetailsScreen(
+                                        product: products[index],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      products[index]['name'],
+                                    ),
+                                    Text(
+                                      "${products[index]['price'].toString()} ${new String.fromCharCodes(new Runes('\u0024'))}",
+                                      style: TextStyle(fontSize: 20),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              trailing: IconButton(
+                                  icon: Icon(
+                                    !isCard[index]
+                                        ? Icons.add_shopping_cart
+                                        : Icons.done,
+                                    color: isCard[index]
+                                        ? Colors.green
+                                        : Colors.white,
+                                    size: 35,
+                                  ),
+                                  onPressed: () {
+                                    !isCard[index]
+                                        ? providerData
+                                            .addtTocart(products[index])
+                                        : null;
+                                    setState(() {
+                                      isCard[index] = !isCard[index];
+                                    });
+                                  }),
                             ),
                           );
                         },
-                        child: CachedNetworkImage(
-                          imageUrl: "http://192.168.1.21:8000/image/" +
-                              products[index]['image_url1'],
-                          placeholder: (context, url) =>
-                              CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                              Icon(Icons.error),
-                        ),
-                        //     Image.network(
-                        //   "http://192.168.1.21:8000/image/" +
-                        //       products[index]['image_url1'],
-                        //   fit: BoxFit.contain,
-                        // ),
+                        itemCount: products.length,
                       ),
-                      footer: GridTileBar(
-                        backgroundColor: Colors.black54,
-                        title: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProductDetailsScreen(
-                                  product: products[index],
-                                ),
-                              ),
-                            );
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                products[index]['name'],
-                              ),
-                              Text(
-                                "${products[index]['price'].toString()} ${new String.fromCharCodes(new Runes('\u0024'))}",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                            ],
-                          ),
-                        ),
-                        trailing: IconButton(
-                            icon: Icon(
-                              !isCard[index]
-                                  ? Icons.add_shopping_cart
-                                  : Icons.done,
-                              color:
-                                  isCard[index] ? Colors.green : Colors.white,
-                              size: 35,
-                            ),
-                            onPressed: () {
-                              !isCard[index]
-                                  ? providerData.addtTocart(products[index])
-                                  : null;
-                              setState(() {
-                                isCard[index] = !isCard[index];
-                              });
-                            }),
-                      ),
-                    );
-                  },
-                  itemCount: products.length,
-                ),
               ),
             )
           ],

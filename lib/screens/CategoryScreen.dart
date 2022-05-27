@@ -1,42 +1,84 @@
+import 'dart:convert';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ecommerce/Provider/MainProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:ecommerce/Provider/globals.dart' as globals;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:toast/toast.dart';
 import 'CartScreen.dart';
 import 'Productdetails.dart';
+import 'package:http/http.dart' as http;
 
 class CategoryScreen extends StatefulWidget {
-  const CategoryScreen({Key key, this.products, this.categoryName})
-      : super(key: key);
+  const CategoryScreen({Key key, this.id, this.categoryName}) : super(key: key);
   final categoryName;
-  final products;
+  final id;
   @override
   State<CategoryScreen> createState() =>
-      _CategoryScreenState(categoryName: categoryName, products: products);
+      _CategoryScreenState(categoryName: categoryName, id: id);
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  _CategoryScreenState({this.products, this.categoryName});
-  final products;
+  _CategoryScreenState({this.id, this.categoryName});
+  final id;
   String categoryName;
-  List isCard;
-
-  void initState() {
-    super.initState();
-    setState(() {
-      if (products != null) {
-        isCard = List.filled(products.length, false);
+  List isCard = [];
+  List products = [];
+  bool loading = true;
+  String message = "";
+  Future getProduct() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String token = prefs.getString('token');
+      print('here is token');
+      print(token);
+      String bearerToken = "Bearer $token";
+      final res = await http.get(
+          Uri.parse("${globals.baseUrl}api/categories/$id"),
+          headers: {"Authorization": bearerToken});
+      final mainData = jsonDecode(res.body);
+      setState(() {
+        products = mainData;
+      });
+      if (res.statusCode == 200 && mainData.length == 0) {
+        setState(() {
+          message = "No product Found";
+        });
+      } else if (res.statusCode == 404) {
+        setState(() {
+          message = "Category not found!";
+        });
+      } else if (res.statusCode == 200) {
+      } else {
+        Toast.show("something went wrong.try again!",
+            duration: Toast.lengthShort, gravity: Toast.bottom);
       }
-    });
+      setState(() {
+        loading = false;
+      });
+    } catch (e) {
+      print(e);
+      Toast.show("check your internet connection.try again!",
+          duration: Toast.lengthShort, gravity: Toast.bottom);
+    }
+  }
+
+  @override
+  void initState() {
+    getProduct();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    print(widget.products);
+    print(products.length);
+    ToastContext().init(context);
     final providerData = Provider.of<MainProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(categoryName != null ? categoryName : ""),
+        title: Text(categoryName != null ? categoryName.toUpperCase() : ""),
         actions: [
           Container(
               child: Stack(
@@ -72,10 +114,13 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ))
         ],
       ),
-      body: products != null
-          ? Padding(
-              padding: EdgeInsets.only(left: 20, right: 20),
-              child: GridView.builder(
+      body: Container(
+        margin: EdgeInsets.all(10),
+        child: loading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 20,
@@ -93,10 +138,18 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           ),
                         );
                       },
-                      child: Image.network(
-                        products[index]['image'],
-                        fit: BoxFit.contain,
+                      child: CachedNetworkImage(
+                        imageUrl: "${globals.baseUrl}image/" +
+                            products[index]['image_url1'],
+                        placeholder: (context, url) =>
+                            CircularProgressIndicator(),
+                        errorWidget: (context, url, error) => Icon(Icons.error),
                       ),
+                      //     Image.network(
+                      //   "http://192.168.1.21:8000/image/" +
+                      //       products[index]['image_url1'],
+                      //   fit: BoxFit.contain,
+                      // ),
                     ),
                     footer: GridTileBar(
                       backgroundColor: Colors.black54,
@@ -115,7 +168,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              products[index]['title'],
+                              products[index]['name'],
                             ),
                             Text(
                               "${products[index]['price'].toString()} ${new String.fromCharCodes(new Runes('\u0024'))}",
@@ -125,30 +178,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         ),
                       ),
                       trailing: IconButton(
-                          icon: Icon(
-                            !isCard[index]
-                                ? Icons.add_shopping_cart
-                                : Icons.done,
-                            color: isCard[index] ? Colors.green : Colors.white,
-                            size: 35,
-                          ),
-                          onPressed: () {
-                            !isCard[index]
-                                ? providerData.addtTocart(products[index])
-                                : null;
-                            setState(() {
-                              isCard[index] = !isCard[index];
-                            });
-                          }),
+                        icon: Icon(
+                          Icons.add_shopping_cart,
+                          color: Colors.white,
+                          size: 35,
+                        ),
+                        onPressed: () {},
+                        // onPressed: () {
+                        //   !isCard[index]
+                        //       ? providerData.addtTocart(products[index])
+                        //       : null;
+                        //   setState(() {
+                        //     isCard[index] = !isCard[index];
+                        //   });
+                        // }
+                      ),
                     ),
                   );
                 },
                 itemCount: products.length,
               ),
-            )
-          : Container(
-              child: Text('no produtc'),
-            ),
+      ),
     );
   }
 }

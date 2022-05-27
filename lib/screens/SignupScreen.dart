@@ -29,7 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
     var res;
     try {
       res = await http.post(
-        Uri.parse('http://192.168.1.21:8000/api/user'),
+        Uri.parse('http://192.168.1.4:8000/api/user'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

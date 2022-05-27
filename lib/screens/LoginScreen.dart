@@ -8,6 +8,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:ecommerce/Provider/globals.dart' as globals;
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key key}) : super(key: key);
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     var res;
     try {
       res = await http.post(
-        Uri.parse('http://192.168.1.21:8000/api/user/login'),
+        Uri.parse('${globals.baseUrl}api/user/login'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -41,8 +42,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (token != null && res.statusCode == 200 && storeToken) {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => HomeScreen()));
+      } else {
+        Toast.show("something wrong!",
+            duration: Toast.lengthShort, gravity: Toast.bottom);
       }
-      Toast.show(token, duration: Toast.lengthShort, gravity: Toast.bottom);
     } catch (e) {
       print(e);
       Toast.show("check your internet connection.try again!",

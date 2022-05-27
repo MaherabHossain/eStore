@@ -1,7 +1,7 @@
 import 'package:ecommerce/screens/HomeScreen.dart';
 import 'package:ecommerce/screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'Provider/MainProvider.dart';
 
@@ -42,11 +42,29 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool isLogin = true;
+  String bearerToken;
+  @override
+  void initState() {
+    checkLogin();
+    super.initState();
+  }
+
+  checkLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String token = prefs.getString('token');
+    if (token != null) {
+      setState(() {
+        bearerToken = token;
+      });
+    } else {
+      bearerToken = token;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: isLogin ? HomeScreen() : LoginScreen(),
+      body: bearerToken != null ? HomeScreen() : LoginScreen(),
     );
   }
 }
