@@ -41,6 +41,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       final mainData = jsonDecode(res.body);
       setState(() {
         products = mainData;
+        isCard = List.filled(products.length, false);
       });
       if (res.statusCode == 200 && mainData.length == 0) {
         setState(() {
@@ -178,21 +179,27 @@ class _CategoryScreenState extends State<CategoryScreen> {
                         ),
                       ),
                       trailing: IconButton(
-                        icon: Icon(
-                          Icons.add_shopping_cart,
-                          color: Colors.white,
-                          size: 35,
-                        ),
-                        onPressed: () {},
-                        // onPressed: () {
-                        //   !isCard[index]
-                        //       ? providerData.addtTocart(products[index])
-                        //       : null;
-                        //   setState(() {
-                        //     isCard[index] = !isCard[index];
-                        //   });
-                        // }
-                      ),
+                          icon: Icon(
+                            !isCard[index]
+                                ? Icons.add_shopping_cart
+                                : Icons.done,
+                            color: isCard[index] ? Colors.green : Colors.white,
+                            size: 35,
+                          ),
+                          onPressed: () {
+                            !isCard[index]
+                                ? providerData.addtTocart({
+                                    "name": products[index]['name'],
+                                    "image_url1": products[index]['image_url1'],
+                                    "price": products[index]['price'],
+                                    "quantity": 1,
+                                    'total': products[index]['price']
+                                  })
+                                : null;
+                            setState(() {
+                              isCard[index] = !isCard[index];
+                            });
+                          }),
                     ),
                   );
                 },

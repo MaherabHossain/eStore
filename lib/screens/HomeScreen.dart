@@ -48,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List products = [];
   List isCard;
   bool productLoader = true;
+  // get categories
   Future getCategories() async {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token');
@@ -58,12 +59,15 @@ class _MyHomePageState extends State<MyHomePage> {
         await http.get(Uri.parse('${globals.baseUrl}api/categories'), headers: {
       'Authorization': bearerToken,
     });
-    setState(() {
-      categories = jsonDecode(res.body);
-      print(bearerToken);
-    });
+    if (res.statusCode == 200) {
+      setState(() {
+        categories = jsonDecode(res.body);
+        print(bearerToken);
+      });
+    }
   }
 
+  // get product
   Future getProduct() async {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token');
@@ -73,16 +77,19 @@ class _MyHomePageState extends State<MyHomePage> {
       'Authorization': bearerToken,
     });
 
-    setState(() {
-      products = jsonDecode(res.body);
-      isCard = List.filled(products.length, false);
-    });
+    if (res.statusCode == 200) {
+      setState(() {
+        products = jsonDecode(res.body);
+        isCard = List.filled(products.length, false);
+      });
+    }
     setState(() {
       // print(products);
       productLoader = false;
     });
   }
 
+  //initState
   @override
   void initState() {
     getCategories();
@@ -245,11 +252,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                 errorWidget: (context, url, error) =>
                                     Icon(Icons.error),
                               ),
-                              //     Image.network(
-                              //   "http://192.168.1.21:8000/image/" +
-                              //       products[index]['image_url1'],
-                              //   fit: BoxFit.contain,
-                              // ),
                             ),
                             footer: GridTileBar(
                               backgroundColor: Colors.black54,
@@ -290,8 +292,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                   onPressed: () {
                                     !isCard[index]
-                                        ? providerData
-                                            .addtTocart(products[index])
+                                        ? providerData.addtTocart({
+                                            "name": products[index]['name'],
+                                            "image_url1": products[index]
+                                                ['image_url1'],
+                                            "price": products[index]['price'],
+                                            "quantity": 1,
+                                            'total': products[index]['price']
+                                          })
                                         : null;
                                     setState(() {
                                       isCard[index] = !isCard[index];
