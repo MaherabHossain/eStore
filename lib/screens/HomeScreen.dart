@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'package:path/path.dart';
 import 'package:ecommerce/Provider/MainProvider.dart';
 import 'package:ecommerce/Widget/Banner.dart';
+import 'package:ecommerce/Widget/MyDrawer.dart';
 import 'package:ecommerce/screens/CartScreen.dart';
 import 'package:ecommerce/screens/CategoryScreen.dart';
 import 'package:ecommerce/screens/Productdetails.dart';
@@ -11,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ecommerce/Provider/globals.dart' as globals;
+import 'package:toast/toast.dart';
 
 class HomeScreen extends StatefulWidget {
   // This widget is the root of your application.
@@ -52,8 +56,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Future getCategories() async {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token');
-    print('here is token');
-    print(token);
     String bearerToken = "Bearer $token";
     final res =
         await http.get(Uri.parse('${globals.baseUrl}api/categories'), headers: {
@@ -69,24 +71,30 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // get product
   Future getProduct() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString('token');
-    String bearerToken = "Bearer $token";
-    final res =
-        await http.get(Uri.parse('${globals.baseUrl}api/products'), headers: {
-      'Authorization': bearerToken,
-    });
-
-    if (res.statusCode == 200) {
-      setState(() {
-        products = jsonDecode(res.body);
-        isCard = List.filled(products.length, false);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String token = prefs.getString('token');
+      String bearerToken = "Bearer $token";
+      final res =
+          await http.get(Uri.parse('${globals.baseUrl}api/products'), headers: {
+        'Authorization': bearerToken,
+      }).timeout(Duration(seconds: 30), onTimeout: () {
+        Toast.show("Request time out. try again!",
+            duration: Toast.lengthShort, gravity: Toast.bottom);
+        return null;
       });
-    }
-    setState(() {
-      // print(products);
-      productLoader = false;
-    });
+
+      if (res.statusCode == 200) {
+        setState(() {
+          products = jsonDecode(res.body);
+          isCard = List.filled(products.length, false);
+        });
+      }
+      setState(() {
+        // print(products);
+        productLoader = false;
+      });
+    } catch (e) {}
   }
 
   //initState
@@ -97,13 +105,20 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
+  final GlobalKey<ScaffoldState> _key = GlobalKey();
   @override
   Widget build(BuildContext context) {
+    ToastContext().init(context);
     final providerData = Provider.of<MainProvider>(context);
     return Scaffold(
+      key: _key,
       appBar: AppBar(
         title: Text("Dokan"),
-        leading: Icon(Icons.menu),
+        leading: IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              _key.currentState.openDrawer();
+            }),
         actions: [
           Container(
             child: Stack(
@@ -115,9 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CartScreen(
-                          cart: providerData.cart,
-                        ),
+                        builder: (context) => CartScreen(),
                       ),
                     );
                   },
@@ -293,6 +306,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   onPressed: () {
                                     !isCard[index]
                                         ? providerData.addtTocart({
+                                            "id": products[index]['id'],
                                             "name": products[index]['name'],
                                             "image_url1": products[index]
                                                 ['image_url1'],
@@ -314,6 +328,10 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           ],
         ),
+      ),
+      drawer: Container(
+        width: MediaQuery.of(context).size.width / 2,
+        child: MyDrawer(),
       ),
     );
   }

@@ -1,27 +1,45 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ecommerce/Provider/MainProvider.dart';
 import 'package:ecommerce/screens/PlaceOrder.dart';
 import 'package:flutter/material.dart';
 
 import 'package:ecommerce/Provider/globals.dart' as globals;
+import 'package:provider/provider.dart';
 import 'package:toast/toast.dart';
 
+import 'HomeScreen.dart';
+
 class CartScreen extends StatefulWidget {
-  const CartScreen({Key key, this.cart}) : super(key: key);
-  final cart;
+  const CartScreen({
+    Key key,
+  }) : super(key: key);
+
   @override
-  State<CartScreen> createState() => _CartScreenState(cart: cart);
+  State<CartScreen> createState() => _CartScreenState();
 }
 
 class _CartScreenState extends State<CartScreen> {
   Future placeOrder() async {}
-  _CartScreenState({Key key, this.cart});
-  final cart;
+  _CartScreenState({Key key});
+
   @override
   Widget build(BuildContext context) {
     ToastContext().init(context);
+    final providerData = Provider.of<MainProvider>(context);
+    final cart = providerData.cart;
     return Scaffold(
       appBar: AppBar(
         title: Text("Cart"),
+        leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+            }),
       ),
       body: Stack(
         children: [
@@ -124,20 +142,23 @@ class _CartScreenState extends State<CartScreen> {
             },
             itemCount: cart.length,
           ),
-          Positioned(
-              bottom: 0,
-              right: MediaQuery.of(context).size.width / 2.7,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PlaceOrder(),
-                    ),
-                  );
-                },
-                child: Text("Process To Order"),
-              ))
+          cart.length > 0
+              ? Positioned(
+                  bottom: 0,
+                  right: MediaQuery.of(context).size.width / 2.7,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PlaceOrder(),
+                        ),
+                      );
+                    },
+                    child: Text("Process To Order"),
+                  ),
+                )
+              : Container()
         ],
       ),
     );

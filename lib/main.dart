@@ -1,3 +1,4 @@
+import 'package:ecommerce/screens/HomePage.dart';
 import 'package:ecommerce/screens/HomeScreen.dart';
 import 'package:ecommerce/screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
   checkLogin() async {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token');
-    if (token != null) {
+    if (token.length > 0) {
       setState(() {
         bearerToken = token;
       });
@@ -64,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: bearerToken != null ? HomeScreen() : LoginScreen(),
+      body: bearerToken.length > 0 ? HomeScreen() : LoginScreen(),
     );
   }
 }

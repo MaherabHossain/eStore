@@ -6,6 +6,8 @@ import 'package:email_validator/email_validator.dart';
 import 'package:toast/toast.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:ecommerce/Provider/globals.dart' as globals;
+
 class SignupScreen extends StatefulWidget {
   SignupScreen({Key key}) : super(key: key);
   static String id = 'SignupScreen';
@@ -29,7 +31,7 @@ class _SignupScreenState extends State<SignupScreen> {
     var res;
     try {
       res = await http.post(
-        Uri.parse('http://192.168.1.4:8000/api/user'),
+        Uri.parse('${globals.baseUrl}api/user'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

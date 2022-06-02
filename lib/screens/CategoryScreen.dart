@@ -91,9 +91,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CartScreen(
-                        cart: providerData.cart,
-                      ),
+                      builder: (context) => CartScreen(),
                     ),
                   );
                 },
@@ -189,6 +187,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           onPressed: () {
                             !isCard[index]
                                 ? providerData.addtTocart({
+                                    "id": products[index]['id'],
                                     "name": products[index]['name'],
                                     "image_url1": products[index]['image_url1'],
                                     "price": products[index]['price'],
