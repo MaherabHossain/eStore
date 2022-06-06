@@ -1,4 +1,3 @@
-import 'package:ecommerce/screens/HomePage.dart';
 import 'package:ecommerce/screens/HomeScreen.dart';
 import 'package:ecommerce/screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'Provider/MainProvider.dart';
 
-void main() {
+String token;
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  token = prefs.getString("token");
   runApp(
     ChangeNotifierProvider(create: (context) => MainProvider(), child: MyApp()),
   );
@@ -24,7 +28,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Dokan',
       theme: ThemeData(
         primarySwatch: Colors.pink,
       ),
@@ -44,28 +48,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String bearerToken;
-  @override
-  void initState() {
-    checkLogin();
-    super.initState();
-  }
-
-  checkLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String token = prefs.getString('token');
-    if (token.length > 0) {
-      setState(() {
-        bearerToken = token;
-      });
-    } else {
-      bearerToken = token;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: bearerToken.length > 0 ? HomeScreen() : LoginScreen(),
-    );
+    token = token == null ? "" : token;
+    return Scaffold(body: token.length > 0 ? HomeScreen() : LoginScreen());
   }
 }

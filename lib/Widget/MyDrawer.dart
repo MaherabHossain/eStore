@@ -4,6 +4,9 @@ import 'package:ecommerce/screens/LoginScreen.dart';
 import 'package:ecommerce/screens/OrderScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:ecommerce/Provider/globals.dart' as globals;
+import 'package:toast/toast.dart';
 
 class MyDrawer extends StatefulWidget {
   const MyDrawer({Key key}) : super(key: key);
@@ -13,20 +16,40 @@ class MyDrawer extends StatefulWidget {
 }
 
 class _MyDrawerState extends State<MyDrawer> {
+  String name;
+  String email;
+  Future getInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    String prefName = prefs.getString('name');
+    String prefEmail = prefs.getString('email');
+    setState(() {
+      name = prefName;
+      email = prefEmail;
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    getInfo();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    ToastContext().init(context);
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const UserAccountsDrawerHeader(
+          UserAccountsDrawerHeader(
             currentAccountPicture: CircleAvatar(
               backgroundImage: NetworkImage(
-                  'https://images.unsplash.com/photo-1485290334039-a3c69043e517?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxfDB8MXxyYW5kb218MHx8fHx8fHx8MTYyOTU3NDE0MQ&ixlib=rb-1.2.1&q=80&utm_campaign=api-credit&utm_medium=referral&utm_source=unsplash_source&w=300'),
+                  'https://st2.depositphotos.com/1006318/5909/v/600/depositphotos_59094701-stock-illustration-businessman-profile-icon.jpg'),
             ),
-            accountEmail: Text('jane.doe@example.com'),
+            accountEmail: Text(email != null ? email : ""),
             accountName: Text(
-              'Jane Doe',
+              name != null ? name : "",
               style: TextStyle(fontSize: 20),
             ),
             decoration: BoxDecoration(
@@ -89,16 +112,32 @@ class _MyDrawerState extends State<MyDrawer> {
                   actions: <Widget>[
                     TextButton(
                       onPressed: () async {
-                        print("come");
+                        print('come');
                         final prefs = await SharedPreferences.getInstance();
-                        await prefs.setString('token', "");
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LoginScreen(),
-                          ),
-                        );
-                        // Navigator.pop(context, 'YES');
+                        final String token = prefs.getString('token');
+                        String bearerToken = "Bearer $token";
+                        final res = await http.post(
+                            Uri.parse('${globals.baseUrl}api/user/logout'),
+                            headers: {
+                              'Authorization': bearerToken,
+                            });
+                        print(res.body);
+                        print(res.statusCode);
+                        if (res.statusCode == 200) {
+                          print("come");
+                          await prefs.setString('token', "");
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LoginScreen(),
+                            ),
+                          );
+                        } else {
+                          Navigator.pop(context, 'YES');
+                          Toast.show("Something went wrong.try again!",
+                              duration: Toast.lengthShort,
+                              gravity: Toast.bottom);
+                        }
                       },
                       child: const Text('YES'),
                     ),

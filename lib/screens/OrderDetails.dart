@@ -19,7 +19,7 @@ class _OrderdetailsState extends State<Orderdetails> {
   @override
   Widget build(BuildContext context) {
     final cart = jsonDecode(widget.orderInfo['cart']);
-    print(cart[0]['name']);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Order Details"),
@@ -50,7 +50,7 @@ class _OrderdetailsState extends State<Orderdetails> {
                         height: 6,
                       ),
                       Text(
-                        "Status : pending",
+                        "Status : " + widget.orderInfo['status'],
                       ),
                     ],
                   ),

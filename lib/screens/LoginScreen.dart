@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool checkEmail = false;
   bool checkPasword = false;
   String password;
-
+  bool isLoading = false;
   Future login(context) async {
     var res;
     try {
@@ -36,16 +36,26 @@ class _LoginScreenState extends State<LoginScreen> {
             jsonEncode(<String, String>{'email': email, 'password': password}),
       );
       var json = jsonDecode(res.body);
-      final prefs = await SharedPreferences.getInstance();
-      String token = json['token'];
-      var storeToken = await prefs.setString('token', token);
-      if (token != null && res.statusCode == 200 && storeToken) {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => HomeScreen()));
+      if (res.statusCode == 200) {
+        final prefs = await SharedPreferences.getInstance();
+        String token = json['token'];
+        var storeToken = await prefs.setString('token', token);
+        var storeName = await prefs.setString('name', json['name']);
+        var storeEmail = await prefs.setString('email', json['email']);
+        if (token != null && res.statusCode == 200 && storeToken) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => HomeScreen()));
+        } else {
+          Toast.show("something wrong!",
+              duration: Toast.lengthShort, gravity: Toast.bottom);
+        }
       } else {
-        Toast.show("something wrong!",
+        Toast.show("check internet or invalid info.try again!",
             duration: Toast.lengthShort, gravity: Toast.bottom);
       }
+      setState(() {
+        isLoading = false;
+      });
     } catch (e) {
       print(e);
       Toast.show("check your internet connection.try again!",
@@ -55,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(isLoading);
     ToastContext().init(context);
     return Scaffold(
       body: Container(
@@ -159,7 +170,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextField(
                             obscureText: true,
                             onChanged: (value) {
-                              print(value.length);
                               if (value.length >= 4) {
                                 setState(() {
                                   checkPasword = true;
@@ -191,7 +201,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     /// LOGIN BUTTON
                     MaterialButton(
                       onPressed: () {
-                        print(checkEmail);
                         if (!checkEmail ||
                             !checkPasword ||
                             email == null ||
@@ -200,20 +209,25 @@ class _LoginScreenState extends State<LoginScreen> {
                               duration: Toast.lengthShort,
                               gravity: Toast.bottom);
                         } else {
-                          print(email);
-                          print(password);
+                          setState(() {
+                            isLoading = true;
+                          });
                           login(context);
                         }
                       },
                       height: 45,
                       minWidth: 240,
-                      child: Text(
-                        'Login',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
+                      child: !isLoading
+                          ? Text(
+                              'Login',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
+                            )
+                          : CircularProgressIndicator(
+                              backgroundColor: Colors.white,
+                            ),
                       textColor: Colors.white,
-                      color: Colors.pink.shade700,
+                      color: Colors.pink,
                       shape: StadiumBorder(),
                     ),
                     SizedBox(height: 25),

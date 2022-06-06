@@ -44,7 +44,7 @@ class _PlaceOrderState extends State<PlaceOrder> {
   bool bkash = false;
   bool nagad = false;
   bool roket = false;
-
+  bool isLoading = false;
   bool cashOnDelivery = false;
   String paymentNumber;
   List<Widget> payment(number) {
@@ -103,7 +103,9 @@ class _PlaceOrderState extends State<PlaceOrder> {
     final prefs = await SharedPreferences.getInstance();
     final String token = prefs.getString('token');
     String bearerToken = "Bearer $token";
+    print("comer");
     try {
+      print("comer");
       var res = await http.post(
         Uri.parse('${globals.baseUrl}api/order'),
         headers: <String, String>{
@@ -122,16 +124,6 @@ class _PlaceOrderState extends State<PlaceOrder> {
           "name": name,
           "email": email,
           "payment_method": "bkash"
-          // "cart": jsonEncode(cart),
-          // "note": "note",
-          // "address": "note",
-          // "phone_number": "note",
-          // "paymentNumber": "note",
-          // "trxId": "note",
-          // "total": "qewr",
-          // "name": "note",
-          // "email": "note",
-          // "payment_method": "bkash"
         }),
       );
       print(res.body);
@@ -158,7 +150,12 @@ class _PlaceOrderState extends State<PlaceOrder> {
         Toast.show("check your internet connection.try again!",
             duration: Toast.lengthShort, gravity: Toast.bottom);
       }
+      setState(() {
+        isLoading = true;
+      });
     } catch (e) {
+      Toast.show("check your internet connection.try again!",
+          duration: Toast.lengthShort, gravity: Toast.bottom);
       print(e);
     }
   }
@@ -360,19 +357,25 @@ class _PlaceOrderState extends State<PlaceOrder> {
               ElevatedButton(
                 onPressed: () {
                   if (_validate()) {
+                    setState(() {
+                      isLoading = true;
+                    });
                     submitOrder(providerData.cart);
                   }
                 },
-                child: Text("Place Order"),
+                child: !isLoading
+                    ? Text(
+                        'Place Order',
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
+                      )
+                    : CircularProgressIndicator(
+                        backgroundColor: Colors.white,
+                      ),
               )
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _validate,
-        tooltip: 'Next',
-        child: Icon(Icons.arrow_forward),
       ),
     );
   }

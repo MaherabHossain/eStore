@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ecommerce/Provider/MainProvider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ecommerce/Provider/globals.dart' as globals;
+import 'package:provider/provider.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   const ProductDetailsScreen({Key key, this.product}) : super(key: key);
@@ -23,9 +25,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     super.initState();
   }
 
+  bool isCard = false;
   @override
   Widget build(BuildContext context) {
-    print(product['image_url1']);
+    final providerData = Provider.of<MainProvider>(context);
+    final cart = providerData.cart;
     return Scaffold(
       appBar: AppBar(
         title: Text("Product Description"),
@@ -105,17 +109,32 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         left: MediaQuery.of(context).size.width / 3, top: 30),
                     child: ElevatedButton(
                       onPressed: () {
-                        print('add to cart');
+                        if (!isCard) {
+                          double price = double.parse(product['price']);
+                          providerData.addtTocart({
+                            "id": product['id'],
+                            "name": product['name'],
+                            "image_url1": product['image_url1'],
+                            "price": price,
+                            "quantity": 1,
+                            'total': price
+                          });
+                        }
+                        setState(() {
+                          isCard = true;
+                        });
                       },
-                      child: Row(
-                        children: [
-                          Text('Add to cart'),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Icon(Icons.add_shopping_cart)
-                        ],
-                      ),
+                      child: !isCard
+                          ? Row(
+                              children: [
+                                Text('Add to cart'),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Icon(Icons.add_shopping_cart)
+                              ],
+                            )
+                          : Text('Added to cart'),
                     ),
                   )
                 ],

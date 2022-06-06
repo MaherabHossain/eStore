@@ -47,7 +47,7 @@ class _CartScreenState extends State<CartScreen> {
             itemBuilder: (context, index) {
               String productName = "";
               if (cart[index]['name'].length > 15) {
-                for (var i = 0; i < 10; i++) {
+                for (var i = 0; i < 7; i++) {
                   productName += cart[index]['name'][i];
                 }
                 productName += "...";
@@ -60,7 +60,7 @@ class _CartScreenState extends State<CartScreen> {
                   child: Row(
                     children: [
                       CachedNetworkImage(
-                        width: 50,
+                        width: 40,
                         imageUrl: "${globals.baseUrl}image/" +
                             cart[index]['image_url1'],
                         placeholder: (context, url) =>
@@ -68,14 +68,14 @@ class _CartScreenState extends State<CartScreen> {
                         errorWidget: (context, url, error) => Icon(Icons.error),
                       ),
                       SizedBox(
-                        width: 6,
+                        width: 3,
                       ),
                       Container(
-                        width: 90,
+                        width: 60,
                         child: Text(
                           productName,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                           ),
                         ),
                       ),
@@ -87,12 +87,14 @@ class _CartScreenState extends State<CartScreen> {
                         onPressed: () {
                           setState(() {
                             cart[index]['quantity']++;
+                            print(cart[index]['price'].runtimeType);
+
                             cart[index]['total'] =
                                 cart[index]['quantity'] * cart[index]['price'];
                           });
                         },
                       ),
-                      Text(cart[index]['quantity'].toString()),
+                      Text("${cart[index]['quantity']}"),
                       IconButton(
                         icon: Icon(
                           Icons.remove,
@@ -114,26 +116,28 @@ class _CartScreenState extends State<CartScreen> {
                         },
                       ),
                       Container(
-                        width: 70,
+                        width: 60,
                         child: Text(
-                          cart[index]['total'].toString() + ' \$',
-                          style: TextStyle(fontSize: 16),
+                          "${cart[index]['total']} " + ' \$',
+                          style: TextStyle(fontSize: 14),
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.delete,
-                          size: 30,
-                          color: Colors.red,
+                      Container(
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.delete,
+                            size: 25,
+                            color: Colors.red,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              cart.remove(cart[index]);
+                            });
+                            Toast.show("Product removed!",
+                                duration: Toast.lengthShort,
+                                gravity: Toast.bottom);
+                          },
                         ),
-                        onPressed: () {
-                          setState(() {
-                            cart.remove(cart[index]);
-                          });
-                          Toast.show("Product removed!",
-                              duration: Toast.lengthShort,
-                              gravity: Toast.bottom);
-                        },
                       ),
                     ],
                   ),

@@ -26,8 +26,9 @@ class _SignupScreenState extends State<SignupScreen> {
   bool checkEmail = false;
   bool checkPasword = false;
   bool checkConfPass = false;
-
+  bool isLoading = false;
   Future createAccount(context) async {
+    print("Come");
     var res;
     try {
       res = await http.post(
@@ -41,6 +42,7 @@ class _SignupScreenState extends State<SignupScreen> {
           'password': password
         }),
       );
+      print(res.body);
       if (res.statusCode == 500) {
         Toast.show("Email already exist!",
             duration: Toast.lengthShort, gravity: Toast.bottom);
@@ -52,6 +54,9 @@ class _SignupScreenState extends State<SignupScreen> {
         Toast.show("Something went wrong!",
             duration: Toast.lengthShort, gravity: Toast.bottom);
       }
+      setState(() {
+        isLoading = false;
+      });
     } catch (e) {
       Toast.show("check your internet connection.try again!",
           duration: Toast.lengthShort, gravity: Toast.bottom);
@@ -245,6 +250,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     /// LOGIN BUTTON
                     MaterialButton(
                       onPressed: () {
+                        setState(() {
+                          isLoading = true;
+                        });
                         if (!checkEmail ||
                             !checkPasword ||
                             email == null ||
@@ -252,21 +260,28 @@ class _SignupScreenState extends State<SignupScreen> {
                             name == null ||
                             confPassword == null ||
                             password != confPassword) {
+                          print("pressed! else");
                           Toast.show("check the fields again",
                               duration: Toast.lengthShort,
                               gravity: Toast.bottom);
                         } else {
+                          print("pressed! else");
+
                           // submit the form
                           createAccount(context);
                         }
                       },
                       height: 45,
                       minWidth: 240,
-                      child: Text(
-                        'Signup',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
-                      ),
+                      child: !isLoading
+                          ? Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
+                            )
+                          : CircularProgressIndicator(
+                              backgroundColor: Colors.white,
+                            ),
                       textColor: Colors.white,
                       color: Colors.pink.shade700,
                       shape: StadiumBorder(),

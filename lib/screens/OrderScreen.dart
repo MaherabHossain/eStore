@@ -40,8 +40,6 @@ class _OrderScreenState extends State<OrderScreen> {
         setState(() {
           orders = jsonDecode(res.body);
         });
-        print("Print Orders");
-        print(orders[0]);
 
         setState(() {
           isLoading = false;
@@ -84,7 +82,7 @@ class _OrderScreenState extends State<OrderScreen> {
                         children: [
                           Text("DOKAN" + orders[index]['id'].toString()),
                           Spacer(),
-                          Text("Pending")
+                          Text(orders[index]['status'])
                         ],
                       ),
                     ),
